@@ -1,0 +1,8 @@
+app/src/main/
+├── AndroidManifest.xml
+└── java/com/example/fcmkeepalive/
+    ├── MainActivity.kt
+        ├── FcmJobService.kt
+            ├── FcmJobScheduler.kt
+                └── BootReceiver.kt
+                
