@@ -1,39 +1,50 @@
-<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+package com.example.fcmkeepalive
 
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+import android.app.Activity
+import android.os.Bundle
+import android.widget.Button
+import android.widget.TextView
+import android.widget.Toast
 
-        <application
-                android:allowBackup="true"
-                        android:icon="@android:drawable/stat_notify_sync"
-                                android:label="FCM KeepAlive"
-                                        android:supportsRtl="true"
-                                                android:theme="@android:style/Theme.DeviceDefault.DayNight">
+class MainActivity : Activity() {
 
-                                                        <activity
-                                                                    android:name=".MainActivity"
-                                                                                android:exported="true">
-                                                                                            <intent-filter>
-                                                                                                            <action android:name="android.intent.action.MAIN" />
-                                                                                                                            <category android:name="android.intent.category.LAUNCHER" />
-                                                                                                                                        </intent-filter>
-                                                                                                                                                </activity>
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
-                                                                                                                                                        <!-- Service xử lý JobScheduler -->
-                                                                                                                                                                <service
-                                                                                                                                                                            android:name=".FcmJobService"
-                                                                                                                                                                                        android:permission="android.permission.BIND_JOB_SERVICE"
-                                                                                                                                                                                                    android:exported="true" />
+        val layout = android.widget.LinearLayout(this).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            setPadding(64, 64, 64, 64)
+            gravity = android.view.Gravity.CENTER
+        }
 
-                                                                                                                                                                                                            <!-- Lắng nghe sự kiện khởi động lại máy -->
-                                                                                                                                                                                                                    <receiver
-                                                                                                                                                                                                                                android:name=".BootReceiver"
-                                                                                                                                                                                                                                            android:exported="true">
-                                                                                                                                                                                                                                                        <intent-filter>
-                                                                                                                                                                                                                                                                        <action android:name="android.intent.action.BOOT_COMPLETED" />
-                                                                                                                                                                                                                                                                                    </intent-filter>
-                                                                                                                                                                                                                                                                                            </receiver>
+        val tvStatus = TextView(this).apply {
+            textSize = 18f
+            setPadding(0, 0, 0, 32)
+        }
 
-                                                                                                                                                                                                                                                                                                </application>
-                                                                                                                                                                                                                                                                                                </manifest>
-                                                                                                                                                                                                                                                                                                
+        val btnToggle = Button(this)
+
+        fun updateUI() {
+            val active = FcmJobScheduler.isScheduled(this)
+            tvStatus.text = if (active) "Trạng thái: ĐANG LẮNG NGHE GMS" else "Trạng thái: ĐÃ TẮT"
+            btnToggle.text = if (active) "Tắt Trigger" else "Kích hoạt Trigger FCM"
+        }
+
+        btnToggle.setOnClickListener {
+            if (FcmJobScheduler.isScheduled(this)) {
+                FcmJobScheduler.cancelJob(this)
+                Toast.makeText(this, "Đã hủy theo dõi GMS", Toast.LENGTH_SHORT).show()
+            } else {
+                FcmJobScheduler.scheduleJob(this)
+                Toast.makeText(this, "Đã kích hoạt Trigger ContentURI", Toast.LENGTH_SHORT).show()
+            }
+            updateUI()
+        }
+
+        layout.addView(tvStatus)
+        layout.addView(btnToggle)
+        setContentView(layout)
+
+        updateUI()
+    }
+}
